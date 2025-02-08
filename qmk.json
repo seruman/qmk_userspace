@@ -1,5 +1,7 @@
 {
     "userspace_version": "1.1",
-    "build_targets": [["sofle", "seruman"]]
+    "build_targets": [
+        ["sofle", "seruman"],
+        ["handwired/dactyl_manuform/5x6_5", "seruman"]
+    ]
 }
-
