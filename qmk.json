@@ -3,6 +3,7 @@
     "build_targets": [
         ["sofle", "seruman"],
         ["handwired/dactyl_manuform/5x6_5", "seruman"],
-        ["cygnus", "seruman"]
+        ["cygnus", "seruman"],
+        ["keyball/keyball44", "seruman"]
     ]
 }
