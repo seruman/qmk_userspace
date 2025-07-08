@@ -39,3 +39,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define AUTO_MOUSE_DEFAULT_LAYER 1
 
 #define CHORDAL_HOLD
+#define TAPPING_TERM 150
