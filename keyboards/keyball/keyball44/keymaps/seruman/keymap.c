@@ -74,19 +74,21 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 bool get_chordal_hold(uint16_t tap_hold_keycode, keyrecord_t* tap_hold_record, uint16_t other_keycode, keyrecord_t* other_record) {
     if (tap_hold_keycode == LCTL_T(KC_TAB)) {
+        // Hold for all keys as it is very high change that what I want is
+        // <C-<other_keycode>>.
+        return true;
+    }
+
+    if (tap_hold_keycode == RCTL_T(KC_QUOT)) {
+        switch (other_keycode) {
+            case KC_B: // <C-b> ghostty prefix.
+            case KC_C: // <C-c>
+                return true;
+        }
         return true;
     }
 
     return get_chordal_hold_default(tap_hold_record, other_record);
-}
-
-uint16_t get_tapping_term(uint16_t keycode, keyrecord_t* record) {
-    switch (keycode) {
-        case LCTL_T(KC_TAB):
-            return 100;
-        default:
-            return TAPPING_TERM;
-    }
 }
 
 layer_state_t layer_state_set_user(layer_state_t state) {
