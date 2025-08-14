@@ -91,6 +91,16 @@ bool get_chordal_hold(uint16_t tap_hold_keycode, keyrecord_t* tap_hold_record, u
     return get_chordal_hold_default(tap_hold_record, other_record);
 }
 
+uint16_t get_tapping_term(uint16_t keycode, keyrecord_t* record) {
+    switch (keycode) {
+        case LCTL_T(KC_TAB):
+        case LCTL_T(KC_QUOT):
+            return TAPPING_TERM - 40;
+    }
+
+    return TAPPING_TERM;
+}
+
 layer_state_t layer_state_set_user(layer_state_t state) {
     // Auto enable scroll mode when the highest layer is 3
     keyball_set_scroll_mode(get_highest_layer(state) == 3);
