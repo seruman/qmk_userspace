@@ -48,7 +48,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
     // Layer 2: Numbers & Arrows
     [2] = LAYOUT_universal(
-        _______,        KC_1,       KC_2,     KC_3,         KC_4,         KC_5,                                    KC_6,       KC_7,         KC_8,     KC_9,       KC_0,       KC_BSPC,
+        KC_TILD,        KC_1,       KC_2,     KC_3,         KC_4,         KC_5,                                    KC_6,       KC_7,         KC_8,     KC_9,       KC_0,       KC_BSPC,
         _______,        S(KC_SCLN), KC_4,     KC_5,         KC_6,         KC_RBRC,                                 KC_LEFT,    KC_DOWN,      KC_UP,    KC_RIGHT,   KC_QUOT,    S(KC_2),
         _______,        S(KC_MINS), KC_1,     KC_2,         KC_3,         S(KC_RBRC),                              S(KC_NUHS), S(KC_INT1),   KC_EQL,   S(KC_LBRC), S(KC_SLSH), S(KC_INT3),
                                     KC_0,     KC_DOT,       _______,      _______,   _______,            KC_DEL,   _______,    _______,      _______,  _______
