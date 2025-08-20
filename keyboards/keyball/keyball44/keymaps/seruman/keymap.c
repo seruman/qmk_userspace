@@ -35,7 +35,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_ESC,         KC_Q,     KC_W,     KC_E,         KC_R,         KC_T,                                      KC_Y,     KC_U,         KC_I,         KC_O,     KC_P,     KC_BSLS,
         LCTL_T(KC_TAB), KC_A,     KC_S,     LALT_T(KC_D), LGUI_T(KC_F), KC_G,                                      KC_H,     RGUI_T(KC_J), LALT_T(KC_K), KC_L,     KC_SCLN,  RCTL_T(KC_QUOT),
         KC_LSFT,        KC_Z,     KC_X,     KC_C,         KC_V,         KC_B,                                      KC_N,     KC_M,         KC_COMM,      KC_DOT,   KC_SLSH,  KC_RSFT,
-                                  KC_LALT,  KC_LGUI,      MO(4),        MO(1),     LT(3,KC_SPC),         KC_ENT,   MO(2),        _______,      _______,  KC_PSCR
+                                  KC_LALT,  KC_LGUI,      MO(4),        MO(1),     LT(3,KC_SPC),         KC_ENT,   MO(2),     _______,     _______,      KC_PSCR
     ),
 
     // Layer 1: Symbols & Navigation
@@ -59,7 +59,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         RGB_TOG,        AML_TO,   AML_I50,  AML_D50,      _______,      _______,                                   RGB_M_P,  RGB_M_B,      RGB_M_R,      RGB_M_SW, RGB_M_SN, RGB_M_K,
         RGB_MOD,        RGB_HUI,  RGB_SAI,  RGB_VAI,      _______,      SCRL_DVI,                                  RGB_M_X,  RGB_M_G,      RGB_M_T,      RGB_M_TW, _______,  _______,
         RGB_RMOD,       RGB_HUD,  RGB_SAD,  RGB_VAD,      _______,      SCRL_DVD,                                  CPI_D1K,  CPI_D100,     CPI_I100,     CPI_I1K,  _______,  KBC_SAVE,
-                                  QK_BOOT,  KBC_RST,      _______,      _______,   _______,              _______,  _______,      _______,      KBC_RST,  QK_BOOT
+                                  QK_BOOT,  KBC_RST,      _______,      _______,   _______,              _______,  _______,   _______,      KBC_RST,  QK_BOOT
     ),
 
     // Layer 4: Mouse buttons
@@ -67,7 +67,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         _______,        _______,  _______,  _______,      _______,      _______,                                   _______,  _______,      _______,      _______,  _______,  _______,
         _______,        _______,  _______,  _______,      _______,      _______,                                   _______,  KC_BTN1,      KC_BTN2,      KC_BTN3,  _______,  _______,
         _______,        _______,  _______,  _______,      _______,      _______,                                   _______,  _______,      _______,      _______,  _______,  _______,
-                                  _______,  _______,      _______,      _______,   _______,              _______,  _______,      _______,      _______,  _______
+                                  _______,  _______,      _______,      _______,   _______,              _______,  _______,   _______,      _______,  _______
     ),
 };
 // clang-format on
