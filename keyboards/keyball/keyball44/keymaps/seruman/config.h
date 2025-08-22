@@ -47,3 +47,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define TRI_LAYER_LOWER_LAYER 1
 #define TRI_LAYER_UPPER_LAYER 2
 #define TRI_LAYER_ADJUST_LAYER 5
+
+#define KEYBALL_SCROLL_DIV_DEFAULT 5
+#define KEYBALL_CPI_DEFAULT 600
+#define KEYBALL_SCROLLSNAP_ENABLE 0
+
+#define KEYBALL_REPORTMOUSE_INTERVAL 4
