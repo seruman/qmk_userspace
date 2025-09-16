@@ -30,6 +30,11 @@ const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM =
                    'L', 'L', 'L', 'L', 'L',      'R', 'R', 'R', 'R', 'R'
     );
 
+enum custom_keycodes {
+
+    KC_FAV_TRACK = QK_USER_0,
+};
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Layer 0: Base layer (QWERTY)
     [0] = LAYOUT_universal(
@@ -75,7 +80,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [5] = LAYOUT_universal(
         G(C(KC_Q)),     _______,  _______,  _______,      _______,      _______,                                   _______,  KC_VOLD,      KC_MUTE,      KC_VOLU,  _______,  _______,
         _______,        _______,  _______,  _______,      _______,      _______,                                   _______,  KC_MPRV,      KC_MPLY,      KC_MNXT,  _______,  _______,
-        _______,        _______,  _______,  _______,      _______,      _______,                                   _______,  _______,      _______,      _______,  _______,  _______,
+        _______,        _______,  _______,  _______,      _______,      _______,                                   _______,  KC_FAV_TRACK, _______,      _______,  _______,  _______,
                                   _______,  _______,      _______,      _______,   _______,              _______,  _______,  _______,      _______,      _______
     ),
 };
@@ -83,7 +88,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 //
 
 typedef enum {
-    HID_CMD_LAYER_STATUS = 0x01,
+    HID_CMD_LAYER_STATUS   = 0x01,
+    HID_CMD_FAVORITE_TRACK = 0x02,
 } hid_command_t;
 
 bool get_chordal_hold(uint16_t tap_hold_keycode, keyrecord_t* tap_hold_record, uint16_t other_keycode, keyrecord_t* other_record) {
@@ -113,6 +119,20 @@ uint16_t get_tapping_term(uint16_t keycode, keyrecord_t* record) {
     }
 
     return TAPPING_TERM;
+}
+
+bool process_record_user(uint16_t keycode, keyrecord_t* record) {
+    switch (keycode) {
+        case KC_FAV_TRACK:
+            if (record->event.pressed) {
+                uint8_t data[32];
+                memset(data, 0, 32);
+                data[0] = HID_CMD_FAVORITE_TRACK;
+                raw_hid_send(data, 32);
+            }
+            return false;
+    }
+    return true;
 }
 
 layer_state_t layer_state_set_user(layer_state_t state) {
