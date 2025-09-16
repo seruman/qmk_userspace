@@ -14,3 +14,5 @@
 compile_commands.json
 .clangd/
 .cache/
+
+tools/qmk-layer-monitor/target

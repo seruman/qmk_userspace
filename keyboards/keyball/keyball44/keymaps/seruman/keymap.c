@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include QMK_KEYBOARD_H
 
 #include "quantum.h"
+#include "raw_hid.h"
 
 // clang-format off
 const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM =
@@ -79,6 +80,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     ),
 };
 // clang-format on
+//
+
+typedef enum {
+    HID_CMD_LAYER_STATUS = 0x01,
+} hid_command_t;
 
 bool get_chordal_hold(uint16_t tap_hold_keycode, keyrecord_t* tap_hold_record, uint16_t other_keycode, keyrecord_t* other_record) {
     if (tap_hold_keycode == LCTL_T(KC_TAB)) {
@@ -110,8 +116,17 @@ uint16_t get_tapping_term(uint16_t keycode, keyrecord_t* record) {
 }
 
 layer_state_t layer_state_set_user(layer_state_t state) {
-    // Auto enable scroll mode when the highest layer is 3
-    keyball_set_scroll_mode(get_highest_layer(state) == 3);
+    uint8_t current_layer = get_highest_layer(state);
+
+    keyball_set_scroll_mode(current_layer == 3);
+
+    uint8_t data[32];
+    memset(data, 0, 32);
+    data[0] = HID_CMD_LAYER_STATUS;
+    data[1] = current_layer;
+    data[2] = (uint8_t)(state & 0xFF);
+    data[3] = (uint8_t)((state >> 8) & 0xFF);
+    raw_hid_send(data, 32);
     return state;
 }
 
