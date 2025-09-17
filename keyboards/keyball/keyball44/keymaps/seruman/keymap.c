@@ -31,8 +31,8 @@ const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM =
     );
 
 enum custom_keycodes {
-
-    KC_FAV_TRACK = QK_USER_0,
+    KC_FAVTRK = SAFE_RANGE,
+    KC_WINHNT,
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -79,8 +79,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Layer 5: Media, miscellaneous.
     [5] = LAYOUT_universal(
         G(C(KC_Q)),     _______,  _______,  _______,      _______,      _______,                                   _______,  KC_VOLD,      KC_MUTE,      KC_VOLU,  _______,  _______,
-        _______,        _______,  _______,  _______,      _______,      _______,                                   _______,  KC_MPRV,      KC_MPLY,      KC_MNXT,  _______,  _______,
-        _______,        _______,  _______,  _______,      _______,      _______,                                   _______,  KC_FAV_TRACK, _______,      _______,  _______,  _______,
+        _______,        _______,  _______,  _______,      KC_WINHNT,    _______,                                   _______,  KC_MPRV,      KC_MPLY,      KC_MNXT,  _______,  _______,
+        _______,        _______,  _______,  _______,      _______,      _______,                                   _______,  KC_FAVTRK,    _______,      _______,  _______,  _______,
                                   _______,  _______,      _______,      _______,   _______,              _______,  _______,  _______,      _______,      _______
     ),
 };
@@ -90,7 +90,28 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 typedef enum {
     HID_CMD_LAYER_STATUS   = 0x01,
     HID_CMD_FAVORITE_TRACK = 0x02,
+    HID_CMD_WINDOW_HINTS   = 0x03,
 } hid_command_t;
+
+static void send_hid_command(hid_command_t cmd, uint8_t data_byte) {
+    uint8_t data[32];
+    memset(data, 0, 32);
+    data[0] = cmd;
+    if (data_byte != 0) {
+        data[1] = data_byte;
+    }
+    raw_hid_send(data, 32);
+}
+
+static void send_layer_status(uint8_t layer, layer_state_t state) {
+    uint8_t data[32];
+    memset(data, 0, 32);
+    data[0] = HID_CMD_LAYER_STATUS;
+    data[1] = layer;
+    data[2] = (uint8_t)(state & 0xFF);
+    data[3] = (uint8_t)((state >> 8) & 0xFF);
+    raw_hid_send(data, 32);
+}
 
 bool get_chordal_hold(uint16_t tap_hold_keycode, keyrecord_t* tap_hold_record, uint16_t other_keycode, keyrecord_t* other_record) {
     if (tap_hold_keycode == LCTL_T(KC_TAB)) {
@@ -123,12 +144,14 @@ uint16_t get_tapping_term(uint16_t keycode, keyrecord_t* record) {
 
 bool process_record_user(uint16_t keycode, keyrecord_t* record) {
     switch (keycode) {
-        case KC_FAV_TRACK:
+        case KC_FAVTRK:
             if (record->event.pressed) {
-                uint8_t data[32];
-                memset(data, 0, 32);
-                data[0] = HID_CMD_FAVORITE_TRACK;
-                raw_hid_send(data, 32);
+                send_hid_command(HID_CMD_FAVORITE_TRACK, 0);
+            }
+            return false;
+        case KC_WINHNT:
+            if (record->event.pressed) {
+                send_hid_command(HID_CMD_WINDOW_HINTS, 0);
             }
             return false;
     }
@@ -140,13 +163,7 @@ layer_state_t layer_state_set_user(layer_state_t state) {
 
     keyball_set_scroll_mode(current_layer == 3);
 
-    uint8_t data[32];
-    memset(data, 0, 32);
-    data[0] = HID_CMD_LAYER_STATUS;
-    data[1] = current_layer;
-    data[2] = (uint8_t)(state & 0xFF);
-    data[3] = (uint8_t)((state >> 8) & 0xFF);
-    raw_hid_send(data, 32);
+    send_layer_status(current_layer, state);
     return state;
 }
 
