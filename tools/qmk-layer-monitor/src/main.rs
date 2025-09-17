@@ -5,7 +5,6 @@ use serde::Serialize;
 use std::fs;
 use std::io::Write;
 use std::os::unix::net::{UnixListener, UnixStream};
-use std::process::Command;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
@@ -22,6 +21,7 @@ const PACKET_SIZE: usize = 32;
 enum HidCommand {
     LayerStatus = 0x01,
     FavoriteTrack = 0x02,
+    WindowHints = 0x03,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -35,35 +35,29 @@ pub struct LayerStatus {
     pub timestamp: u64,
 }
 
+#[derive(Debug, Clone, Serialize)]
+#[serde(tag = "action", content = "data")]
+pub enum SocketMessage {
+    #[serde(rename = "layer_status")]
+    LayerStatus(LayerStatus),
+    #[serde(rename = "favorite_track")]
+    FavoriteTrack { timestamp: u64 },
+    #[serde(rename = "window_hints")]
+    WindowHints { timestamp: u64 },
+}
+
 fn layer_name(id: u8) -> &'static str {
     match id {
-        0 => "QWERTY",    // Base layer
-        1 => "SYMBOLS",   // Symbols & Navigation
-        2 => "NUMBERS",   // Numbers & Arrows
-        3 => "MOUSE_CTL", // RGB & Mouse controls
-        4 => "MOUSE_BTN", // Mouse buttons
-        5 => "MEDIA",     // Media, miscellaneous
-        _ => "UNKNOWN",
+        0 => "🔤",    // Base layer
+        1 => "🔣",    // Symbols & Navigation
+        2 => "🔢",    // Numbers & Arrows
+        3 => "🖲️",    // RGB & Mouse controls (scroll)
+        4 => "🖱️",    // Mouse buttons
+        5 => "🎵",    // Media, miscellaneous
+        _ => "❓",
     }
 }
 
-fn favorite_current_track() -> Result<()> {
-    let script = "tell application \"Music\" to set favorited of current track to true";
-
-    let output = Command::new("osascript")
-        .arg("-e")
-        .arg(script)
-        .output()
-        .context("Failed to execute AppleScript")?;
-
-    if !output.status.success() {
-        let error_msg = String::from_utf8_lossy(&output.stderr);
-        return Err(anyhow::anyhow!("AppleScript failed: {}", error_msg));
-    }
-
-    info!("Successfully favorited current track");
-    Ok(())
-}
 
 struct SocketServer {
     clients: Arc<Mutex<Vec<UnixStream>>>,
@@ -130,6 +124,70 @@ impl Drop for SocketServer {
     }
 }
 
+fn handle_layer_status(
+    buffer: &[u8],
+    socket_server: &SocketServer,
+    last_layer_id: &mut Option<u8>,
+) -> Result<()> {
+    if buffer.len() < 4 {
+        return Ok(());
+    }
+
+    let layer_id = buffer[1];
+    let layer_state = u32::from_le_bytes([buffer[2], buffer[3], 0, 0]);
+
+    if Some(layer_id) == *last_layer_id {
+        return Ok(());
+    }
+
+    let status = LayerStatus {
+        layer_name: layer_name(layer_id).to_string(),
+        layer_id,
+        layer_state,
+        timestamp: std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)?
+            .as_secs(),
+    };
+
+    debug!(
+        "Layer: {} ({}), State: 0x{:04x}",
+        status.layer_name, layer_id, layer_state
+    );
+
+    let message = SocketMessage::LayerStatus(status);
+    let json = serde_json::to_string(&message)?;
+    socket_server.broadcast(&json);
+
+    *last_layer_id = Some(layer_id);
+    Ok(())
+}
+
+fn handle_favorite_track(socket_server: &SocketServer) -> Result<()> {
+    info!("Received favorite track command");
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)?
+        .as_secs();
+
+    let message = SocketMessage::FavoriteTrack { timestamp };
+    let json = serde_json::to_string(&message)?;
+    socket_server.broadcast(&json);
+
+    Ok(())
+}
+
+fn handle_window_hints(socket_server: &SocketServer) -> Result<()> {
+    info!("Received window hints command");
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)?
+        .as_secs();
+
+    let message = SocketMessage::WindowHints { timestamp };
+    let json = serde_json::to_string(&message)?;
+    socket_server.broadcast(&json);
+
+    Ok(())
+}
+
 struct QmkMonitor {
     device: Option<HidDevice>,
     last_reconnect: Instant,
@@ -179,56 +237,7 @@ impl QmkMonitor {
         Ok(())
     }
 
-    fn process_packet(&mut self, buffer: &[u8]) -> Result<()> {
-        if buffer.is_empty() {
-            return Ok(());
-        }
 
-        match buffer[0] {
-            cmd if cmd == HidCommand::LayerStatus as u8 => {
-                if buffer.len() < 4 {
-                    return Ok(());
-                }
-
-                let layer_id = buffer[1];
-                let layer_state = u32::from_le_bytes([buffer[2], buffer[3], 0, 0]);
-
-                if Some(layer_id) == self.last_layer_id {
-                    return Ok(());
-                }
-
-                let status = LayerStatus {
-                    layer_name: layer_name(layer_id).to_string(),
-                    layer_id,
-                    layer_state,
-                    timestamp: std::time::SystemTime::now()
-                        .duration_since(std::time::UNIX_EPOCH)?
-                        .as_secs(),
-                };
-
-                debug!(
-                    "Layer: {} ({}), State: 0x{:04x}",
-                    status.layer_name, layer_id, layer_state
-                );
-
-                let json = serde_json::to_string(&status)?;
-                self.socket_server.broadcast(&json);
-
-                self.last_layer_id = Some(layer_id);
-            }
-            cmd if cmd == HidCommand::FavoriteTrack as u8 => {
-                info!("Received favorite track command");
-                if let Err(e) = favorite_current_track() {
-                    error!("Failed to favorite track: {}", e);
-                }
-            }
-            _ => {
-                debug!("Unknown HID command: 0x{:02x}", buffer[0]);
-            }
-        }
-
-        Ok(())
-    }
 
     fn run(&mut self) -> Result<()> {
         info!("Starting QMK layer monitor...");
@@ -260,7 +269,27 @@ impl QmkMonitor {
             if let Some(ref mut device) = self.device {
                 match device.read_timeout(&mut buffer, 100) {
                     Ok(PACKET_SIZE) => {
-                        if let Err(e) = self.process_packet(&buffer) {
+                        if buffer.is_empty() {
+                            continue;
+                        }
+
+                        let result = match buffer[0] {
+                            cmd if cmd == HidCommand::LayerStatus as u8 => {
+                                handle_layer_status(&buffer, &self.socket_server, &mut self.last_layer_id)
+                            }
+                            cmd if cmd == HidCommand::FavoriteTrack as u8 => {
+                                handle_favorite_track(&self.socket_server)
+                            }
+                            cmd if cmd == HidCommand::WindowHints as u8 => {
+                                handle_window_hints(&self.socket_server)
+                            }
+                            _ => {
+                                debug!("Unknown HID command: 0x{:02x}", buffer[0]);
+                                Ok(())
+                            }
+                        };
+
+                        if let Err(e) = result {
                             error!("Error processing packet: {}", e);
                         }
                     }
