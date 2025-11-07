@@ -35,13 +35,16 @@ enum custom_keycodes {
     KC_WINHNT,
 };
 
+#define LGA_T(kc) MT(MOD_LGUI | MOD_LALT, kc)
+#define RGA_T(kc) MT(MOD_RGUI | MOD_RALT, kc)
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Layer 0: Base layer (QWERTY)
     [0] = LAYOUT_universal(
-        KC_ESC,         KC_Q,     KC_W,     KC_E,         KC_R,         KC_T,                                      KC_Y,     KC_U,         KC_I,         KC_O,     KC_P,     KC_BSLS,
-        LCTL_T(KC_TAB), KC_A,     KC_S,     LALT_T(KC_D), LGUI_T(KC_F), KC_G,                                      KC_H,     RGUI_T(KC_J), LALT_T(KC_K), KC_L,     KC_SCLN,  RCTL_T(KC_QUOT),
-        KC_LSFT,        KC_Z,     KC_X,     KC_C,         KC_V,         KC_B,                                      KC_N,     KC_M,         KC_COMM,      KC_DOT,   KC_SLSH,  KC_RSFT,
-                                  KC_LALT,  KC_LGUI,      MO(4),        TL_LOWR,   LT(3,KC_SPC),         KC_ENT,   TL_UPPR,  _______,      _______,      KC_PSCR
+        KC_ESC,         KC_Q,     KC_W,            KC_E,         KC_R,         KC_T,                                      KC_Y,     KC_U,         KC_I,         KC_O,            KC_P,     KC_BSLS,
+        LCTL_T(KC_TAB), KC_A,     LGA_T(KC_S),     LALT_T(KC_D), LGUI_T(KC_F), KC_G,                                      KC_H,     RGUI_T(KC_J), LALT_T(KC_K), RGA_T(KC_L),     KC_SCLN,  RCTL_T(KC_QUOT),
+        KC_LSFT,        KC_Z,     KC_X,            KC_C,         KC_V,         KC_B,                                      KC_N,     KC_M,         KC_COMM,      KC_DOT,          KC_SLSH,  KC_RSFT,
+                                  KC_LALT,         KC_LGUI,      MO(4),        TL_LOWR,   LT(3,KC_SPC),         KC_ENT,   TL_UPPR,  _______,      _______,      KC_PSCR
     ),
 
     // Layer 1: Symbols & Navigation
