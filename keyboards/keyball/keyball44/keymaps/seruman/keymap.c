@@ -129,7 +129,6 @@ bool get_chordal_hold(uint16_t tap_hold_keycode, keyrecord_t* tap_hold_record, u
             case KC_C: // <C-c>
                 return true;
         }
-        return true;
     }
 
     return get_chordal_hold_default(tap_hold_record, other_record);
@@ -138,7 +137,7 @@ bool get_chordal_hold(uint16_t tap_hold_keycode, keyrecord_t* tap_hold_record, u
 uint16_t get_tapping_term(uint16_t keycode, keyrecord_t* record) {
     switch (keycode) {
         case LCTL_T(KC_TAB):
-        case LCTL_T(KC_QUOT):
+        case RCTL_T(KC_QUOT):
             return TAPPING_TERM - 40;
     }
 
